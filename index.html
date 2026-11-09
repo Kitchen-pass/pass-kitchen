@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#173f35">
+<title>PASS — Your kitchen. Under control.</title>
+<style>
+:root{--ink:#172923;--muted:#687871;--green:#1e5a49;--green2:#e7f1ec;--line:#dce5df;--bg:#f3f6f4;--white:#fff;--red:#a83232;--amber:#946000}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{background:#173f35;color:white;padding:22px 18px 18px;position:relative;z-index:2}
+.brand{font-size:27px;font-weight:850;letter-spacing:2px}.tag{font-size:13px;opacity:.8;margin-top:3px}
+header .sub{font-size:12px;opacity:.72;margin-top:12px}
+nav{display:flex;gap:7px;overflow:auto;padding:10px;background:white;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:4}
+nav button{white-space:nowrap;border:0;border-radius:9px;padding:10px 13px;background:#f0f4f1;color:#355046;font-weight:700}
+nav button.active{background:var(--green);color:white}
+main{max-width:1050px;margin:auto;padding:16px}
+h1{font-size:23px;margin:8px 0 5px}h2{font-size:18px;margin:0 0 14px}h3{font-size:15px;margin:0 0 9px}
+.muted{color:var(--muted)}.small{font-size:12px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:14px 0}
+.card,.panel{background:white;border:1px solid var(--line);border-radius:15px;padding:16px;margin:12px 0;box-shadow:0 3px 12px #163b2b08}
+.stat{font-size:27px;font-weight:800;margin-top:5px}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+label{display:block;font-size:13px;font-weight:700;margin:10px 0 5px}
+input,select,textarea{width:100%;border:1px solid #cbd8d0;border-radius:9px;padding:12px;font:inherit;background:white;color:var(--ink)}
+textarea{min-height:76px;resize:vertical}
+button{cursor:pointer;font:inherit}
+.primary,.secondary,.danger{border:0;border-radius:9px;padding:12px 15px;font-weight:750}
+.primary{background:var(--green);color:white;width:100%;margin-top:12px}
+.secondary{background:var(--green2);color:var(--green);margin:5px 5px 5px 0}
+.danger{background:#fbeaea;color:var(--red);padding:7px 10px}
+.pill{display:inline-block;border-radius:30px;padding:4px 8px;font-size:11px;font-weight:800;background:#edf2ef;color:#40574c}
+.pass{background:#e5f4eb;color:#17633c}.fail{background:#fae8e8;color:#a12626}.open{background:#fff1d8;color:#805300}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:650px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-size:11px;text-transform:uppercase}
+.tablewrap{overflow:auto}
+.empty{padding:25px;text-align:center;color:var(--muted)}
+.hidden{display:none!important}
+.notice{background:#fff7e5;border:1px solid #f0dfb6;border-radius:10px;padding:11px;font-size:12px;color:#6c541f;margin-top:12px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border:0}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+@media(max-width:600px){main{padding:12px}.row{grid-template-columns:1fr}header{padding:17px}nav{top:83px}.card,.panel{padding:13px}}
+</style>
+</head>
+<body>
+<header><div class="brand">PASS</div><div class="tag">Your kitchen. Under control.</div><div class="sub">KITCHEN OPERATIONS • WORKING PROTOTYPE</div></header>
+<nav id="nav">
+<button class="active" data-tab="home">Overview</button><button data-tab="haccp">HACCP</button><button data-tab="prep">Prep & service</button><button data-tab="stock">Stock</button><button data-tab="waste">Waste</button><button data-tab="recipes">Recipes</button><button data-tab="staff">Staff</button>
+</nav>
+<main>
+<section id="home" class="tab">
+<h1>Kitchen overview</h1><div class="muted">Your shift at a glance.</div>
+<div class="grid">
+<div class="card"><div class="small">Temperature checks today</div><div class="stat" id="sChecks">0</div></div>
+<div class="card"><div class="small">Out-of-limit checks</div><div class="stat" id="sFails">0</div></div>
+<div class="card"><div class="small">Open corrective actions</div><div class="stat" id="sActions">0</div></div>
+<div class="card"><div class="small">Prep tasks outstanding</div><div class="stat" id="sPrep">0</div></div><div class="card"><div class="small">Waste cost today</div><div class="stat" id="sWaste">€0.00</div></div>
+</div>
+<div class="panel"><h2>Quick actions</h2><button class="secondary" onclick="showTab('haccp')">＋ Record temperature</button><button class="secondary" onclick="showTab('prep')">＋ Add prep task</button><button class="secondary" onclick="showTab('stock')">＋ Add stock item</button><button class="secondary" onclick="showTab('recipes')">＋ Add recipe</button></div>
+<div class="notice">Prototype storage: records are saved in this browser on this device. Export backups regularly. This is not yet a certified HACCP system, cloud service or multi-user platform.</div>
+</section>
+<section id="haccp" class="tab hidden">
+<h1>HACCP & temperature log</h1><p class="muted">Record checks, identify exceptions and document follow-up.</p>
+<div class="panel"><h2>Record a temperature</h2>
+<form id="tempForm"><input id="linkedPrepId" type="hidden">
+<label>Check type</label><select id="checkType"><option value="Chilled storage">Chilled storage (0–5°C)</option><option value="Frozen storage">Frozen storage (≤−18°C)</option><option value="Hot holding">Hot holding (≥63°C)</option><option value="Cooking / reheating">Cooking / reheating (≥75°C)</option><option value="Other">Other / site-defined</option></select>
+<div class="row"><div><label>Unit / food item</label><input id="food" required placeholder="e.g. Chicken, fridge 1"></div><div><label>Temperature (°C)</label><input id="temp" type="number" step="0.1" required placeholder="e.g. 3.2"></div></div>
+<div class="row"><div><label>Checked by</label><input id="checker" required placeholder="Staff name"></div><div><label>Time</label><input id="checkTime" type="time" required></div></div>
+<label>Notes / corrective action</label><textarea id="tempNotes" placeholder="If out of limit, record action taken, who was informed and follow-up check."></textarea>
+<button class="primary">Save temperature record</button></form>
+<div class="notice">Suggested limits only: chilled 0–5°C; frozen ≤−18°C; hot holding ≥63°C; cooking/reheating ≥75°C. Confirm these against your venue's approved HACCP plan. Follow your site's procedure for unsafe food and corrective action.</div></div>
+<div class="panel"><div class="row"><div><h2>Temperature records</h2></div><div><button class="secondary" onclick="exportCSV('temps')">Export CSV</button></div></div><div class="tablewrap"><table><thead><tr><th>Date / time</th><th>Check</th><th>Item</th><th>Temp</th><th>Result</th><th>Checked by</th><th>Action / manage</th></tr></thead><tbody id="tempRows"></tbody></table></div><div id="tempEmpty" class="empty">No temperature records yet.</div></div>
+</section>
+<section id="prep" class="tab hidden">
+<h1>Daily prep & service</h1><p class="muted">The Head Chef prepares tomorrow's list and finalises it before leaving.</p>
+<div class="panel"><div class="row"><div><label>Prep list date</label><input id="planDate" type="date"></div><div style="align-self:end"><button class="secondary" onclick="finalizePlan()">Finalise this day's prep list</button></div></div><div id="planStatus" class="notice">This list is still a draft. Finalise it when it is ready for the team.</div></div>
+<div class="panel"><h2>Add prep task</h2><form id="prepForm"><label>Task</label><input id="prepTask" required placeholder="e.g. Prepare 40 portions chicken curry"><div class="row"><div><label>Area / service</label><select id="prepArea"><option>Breakfast</option><option>Lunch</option><option>Food truck</option><option>IR95</option><option>General prep</option><option>Cleaning</option></select></div><div><label>Assigned to</label><input id="prepOwner" placeholder="Staff name"></div></div><div class="row"><div><label>Due time / cooking time</label><input id="prepDue" type="time"></div><div><label>Priority</label><select id="prepPriority"><option>Normal</option><option>High</option><option>Urgent</option></select></div></div>
+<label style="display:flex;align-items:center;gap:8px"><input id="prepCooking" type="checkbox" style="width:auto"> Cooking task — remind staff to record core temperature</label>
+<button class="primary">Add to prep list</button></form></div>
+<div class="panel"><h2>Prep list</h2><div id="prepRows"></div><div id="prepEmpty" class="empty">No prep tasks added for this date.</div></div>
+</section>
+<section id="stock" class="tab hidden">
+<h1>Stock & ordering</h1><p class="muted">A simple stock list to support counts and ordering.</p>
+<div class="panel"><h2>Add stock item</h2><form id="stockForm"><div class="row"><div><label>Item</label><input id="stockName" required placeholder="e.g. Chicken fillet"></div><div><label>Unit</label><select id="stockUnit"><option>kg</option><option>each</option><option>litre</option><option>case</option><option>pack</option></select></div></div><div class="row"><div><label>Current quantity</label><input id="stockQty" type="number" min="0" step="0.1" value="0"></div><div><label>Par level / minimum</label><input id="stockPar" type="number" min="0" step="0.1" value="0"></div></div><label>Supplier / notes</label><input id="stockSupplier" placeholder="Supplier name"><button class="primary">Save stock item</button></form></div>
+<div class="panel"><h2>Stock list</h2><div id="stockRows"></div><div id="stockEmpty" class="empty">No stock items yet.</div><button class="secondary" onclick="exportCSV('stock')">Export stock CSV</button></div>
+</section>
+<section id="waste" class="tab hidden">
+<h1>Waste & food cost</h1><p class="muted">Record waste after every service to understand losses and reduce overproduction.</p>
+<div class="grid">
+<div class="card"><div class="small">Waste records today</div><div class="stat" id="wasteCount">0</div></div>
+<div class="card"><div class="small">Estimated waste cost today</div><div class="stat" id="wasteCost">€0.00</div></div>
+</div>
+<div class="panel"><h2>Record service waste</h2>
+<form id="wasteForm">
+<div class="row"><div><label>Service</label><select id="wasteService"><option>Breakfast</option><option>Lunch</option><option>Food truck</option><option>IR95</option><option>Dinner</option><option>Other</option></select></div><div><label>Food item</label><input id="wasteItem" required placeholder="e.g. Chicken curry"></div></div>
+<div class="row"><div><label>Quantity wasted</label><input id="wasteQty" type="number" min="0.01" step="0.01" required placeholder="e.g. 2.5"></div><div><label>Unit</label><select id="wasteUnit"><option>kg</option><option>portions</option><option>litres</option><option>each</option><option>trays</option></select></div></div>
+<div class="row"><div><label>Estimated cost (€)</label><input id="wasteValue" type="number" min="0" step="0.01" required placeholder="e.g. 12.50"></div><div><label>Recorded by</label><input id="wasteBy" required placeholder="Staff name"></div></div>
+<label>Reason for waste</label><select id="wasteReason"><option>Overproduction</option><option>Spoilage / expired</option><option>Preparation waste</option><option>Customer plate returns</option><option>Quality issue</option><option>Incorrect order / production</option><option>Other</option></select>
+<label>Prevention / follow-up action</label><textarea id="wasteAction" placeholder="What can we change to prevent this next time?"></textarea>
+<button class="primary">Save service waste record</button></form>
+</div>
+<div class="panel"><h2>Waste log</h2><div class="tablewrap"><table><thead><tr><th>Date / time</th><th>Service</th><th>Food</th><th>Quantity</th><th>Reason</th><th>Cost</th><th>Recorded by</th><th>Action</th></tr></thead><tbody id="wasteRows"></tbody></table></div><div id="wasteEmpty" class="empty">No waste records yet. Record waste when each service finishes.</div><button class="secondary" onclick="exportCSV('waste')">Export waste CSV</button></div>
+<div class="notice">Record waste at the end of each service, including preparation waste and returned food where your site procedure allows. Cost figures are estimates unless linked to verified recipe or purchase costs.</div>
+</section>
+<section id="recipes" class="tab hidden">
+<h1>Recipes & allergens</h1><p class="muted">Store recipe basics, portions and allergen notes. Costing fields can be expanded in the next build.</p>
+<div class="panel"><h2>Add recipe</h2><form id="recipeForm"><label>Recipe name</label><input id="recipeName" required placeholder="e.g. Chicken curry"><div class="row"><div><label>Portions</label><input id="recipePortions" type="number" min="1" value="10"></div><div><label>Cost per batch (€)</label><input id="recipeCost" type="number" min="0" step="0.01" placeholder="0.00"></div></div><label>Ingredients / method</label><textarea id="recipeMethod" placeholder="Ingredients, quantities and method"></textarea><label>Allergens (verify against ingredients)</label><input id="recipeAllergens" placeholder="e.g. milk, mustard"><button class="primary">Save recipe</button></form></div>
+<div class="panel"><h2>Recipe book</h2><div id="recipeRows"></div><div id="recipeEmpty" class="empty">No recipes saved yet.</div></div>
+</section>
+<section id="staff" class="tab hidden">
+<h1>Staff & shift tasks</h1><p class="muted">Keep a simple team list and assign shift responsibilities.</p>
+<div class="panel"><h2>Add team member</h2><form id="staffForm"><div class="row"><div><label>Name</label><input id="staffName" required placeholder="Staff name"></div><div><label>Role</label><select id="staffRole"><option>Head Chef</option><option>Sous Chef</option><option>Chef de Partie</option><option>Commis Chef</option><option>Kitchen Porter</option><option>Supervisor</option><option>Barista / FOH</option><option>Other</option></select></div></div><button class="primary">Add team member</button></form></div>
+<div class="panel"><h2>Team</h2><div id="staffRows"></div><div id="staffEmpty" class="empty">No team members added yet.</div></div>
+</section>
+<footer class="small" style="padding:18px 4px 35px">PASS prototype • Your kitchen. Under control. • Data is stored locally in this browser. Use Export CSV for backups. Do not use this prototype as your venue's official food-safety record system until reviewed and approved by your food-safety lead.</footer>
+</main>
+<script>
+(function(){
+'use strict';
+const KEY='pass_kitchen_v1';
+let db={temps:[],prep:[],stock:[],waste:[],recipes:[],staff:[],finalizedDates:[],reminded:[]};
+try{const saved=localStorage.getItem(KEY);if(saved){const parsed=JSON.parse(saved);db={...db,...parsed};db.finalizedDates=db.finalizedDates||[];db.reminded=db.reminded||[];}}catch(e){console.error('Could not read saved data',e);}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(db));return true}catch(e){alert('PASS could not save in this browser. Open this file in Safari or Chrome rather than a document preview, and check browser storage settings.');return false}};
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const stamp=()=>new Date().toLocaleString();
+const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function within(type,t){if(type==='Chilled storage')return t>=0&&t<=5;if(type==='Frozen storage')return t<=-18;if(type==='Hot holding')return t>=63;if(type==='Cooking / reheating')return t>=75;return null}
+function showTab(tab){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));$(tab).classList.remove('hidden');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));window.scrollTo(0,0)}
+window.showTab=showTab;
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+function render(){
+const todays=db.temps.filter(x=>x.date===today());$('sChecks').textContent=todays.length;$('sFails').textContent=todays.filter(x=>x.result==='OUT OF LIMIT').length;$('sActions').textContent=db.temps.filter(x=>x.result==='OUT OF LIMIT'&&!x.closed).length;$('sPrep').textContent=db.prep.filter(x=>x.date===today()&&!x.done).length;const wasteToday=db.waste.filter(x=>x.date===today());$('sWaste').textContent='€'+wasteToday.reduce((a,x)=>a+Number(x.value||0),0).toFixed(2);
+$('tempRows').innerHTML=db.temps.slice().reverse().map(x=>`<tr><td>${esc(x.date)}<br>${esc(x.time)}</td><td>${esc(x.type)}</td><td>${esc(x.food)}</td><td>${esc(x.temp)}°C</td><td><span class="pill ${x.result==='PASS'?'pass':x.result==='OUT OF LIMIT'?'fail':'open'}">${esc(x.result)}</span></td><td>${esc(x.checker)}</td><td>${esc(x.notes||'—')}${x.result==='OUT OF LIMIT'?`<br><span class="pill ${x.closed?'pass':'open'}">${x.closed?'Closed':'Action open'}</span>${!x.closed?`<br><button class="secondary" onclick="closeAction('${x.id}')">Close action</button>`:''}`:''}<br><button class="danger" onclick="removeItem('temps','${x.id}')">Delete</button></td></tr>`).join('');
+$('tempEmpty').classList.toggle('hidden',db.temps.length>0);
+const planDate=$('planDate').value||today();const todaysPrep=db.prep.filter(x=>x.date===planDate);
+$('prepRows').innerHTML=todaysPrep.map(x=>`<div class="item"><div><strong>${esc(x.task)}</strong><div class="small">${esc(x.area)} • ${esc(x.owner||'Unassigned')} • ${esc(x.due||'No time')} • ${esc(x.priority)}</div>${x.cooking?`<div class="small"><span class="pill ${x.tempRecorded?'pass':'open'}">${x.tempRecorded?'Cooking temperature recorded':'Cooking temperature required'}</span></div>`:''}${x.cooking&&x.due&&!x.tempRecorded?`<button class="secondary" onclick="startCookingCheck('${x.id}')">Record cooking temperature</button>`:''}</div><div class="actions"><button class="secondary" onclick="togglePrep('${x.id}')">${x.done?'Reopen':'Complete'}</button><button class="danger" onclick="removeItem('prep','${x.id}')">Delete</button></div></div>`).join('');$('prepEmpty').classList.toggle('hidden',todaysPrep.length>0);
+$('planStatus').textContent=db.finalizedDates.includes(planDate)?'FINALISED — this prep list is ready for the team. You can still make changes if needed.':'DRAFT — this list is not finalised yet. The Head Chef should finalise it before the day starts.';
+$('stockRows').innerHTML=db.stock.map(x=>`<div class="item"><div><strong>${esc(x.name)}</strong><div class="small">${esc(x.qty)} ${esc(x.unit)} in stock • par ${esc(x.par)} • ${esc(x.supplier||'No supplier')}</div></div><div class="actions">${Number(x.qty)<Number(x.par)?'<span class="pill fail">Order</span>':'<span class="pill pass">OK</span>'}<button class="danger" onclick="removeItem('stock','${x.id}')">Delete</button></div></div>`).join('');$('stockEmpty').classList.toggle('hidden',db.stock.length>0);
+$('recipeRows').innerHTML=db.recipes.map(x=>`<div class="item"><div><strong>${esc(x.name)}</strong><div class="small">${esc(x.portions)} portions • batch €${esc(x.cost||'0')} • allergens: ${esc(x.allergens||'not entered')}</div><details><summary>Ingredients / method</summary><p>${esc(x.method||'Not entered')}</p></details></div><button class="danger" onclick="removeItem('recipes','${x.id}')">Delete</button></div>`).join('');$('recipeEmpty').classList.toggle('hidden',db.recipes.length>0);
+const wasteTodayRows=db.waste.filter(x=>x.date===today());$('wasteCount').textContent=wasteTodayRows.length;$('wasteCost').textContent='€'+wasteTodayRows.reduce((a,x)=>a+Number(x.value||0),0).toFixed(2);
+$('wasteRows').innerHTML=db.waste.slice().reverse().map(x=>`<tr><td>${esc(x.date)}<br>${esc(x.time)}</td><td>${esc(x.service)}</td><td>${esc(x.item)}</td><td>${esc(x.qty)} ${esc(x.unit)}</td><td>${esc(x.reason)}</td><td>€${Number(x.value).toFixed(2)}</td><td>${esc(x.by)}</td><td>${esc(x.action||'—')}<br><button class="danger" onclick="removeItem('waste','${x.id}')">Delete</button></td></tr>`).join('');$('wasteEmpty').classList.toggle('hidden',db.waste.length>0);
+$('staffRows').innerHTML=db.staff.map(x=>`<div class="item"><div><strong>${esc(x.name)}</strong><div class="small">${esc(x.role)}</div></div><button class="danger" onclick="removeItem('staff','${x.id}')">Delete</button></div>`).join('');$('staffEmpty').classList.toggle('hidden',db.staff.length>0);
+}
+window.removeItem=(bucket,itemId)=>{if(confirm('Delete this record?')){db[bucket]=db[bucket].filter(x=>x.id!==itemId);save();render()}};
+window.togglePrep=itemId=>{const x=db.prep.find(x=>x.id===itemId);if(x){x.done=!x.done;save();render()}};
+window.closeAction=itemId=>{const x=db.temps.find(x=>x.id===itemId);if(!x)return;const note=prompt('Enter the follow-up check / action that closed this issue:');if(note&&note.trim()){x.closed=true;x.closeNote=note.trim();save();render()}};
+function bind(form,fn){$(form).addEventListener('submit',e=>{e.preventDefault();fn();if(save()){e.target.reset();render();alert('Saved to this browser.')}})}
+bind('tempForm',()=>{const type=$('checkType').value,t=Number($('temp').value),result=within(type,t);let notes=$('tempNotes').value.trim();if(result===false&&!notes){notes=prompt('This is outside the suggested limit. Record the corrective action taken:')||'';}db.temps.push({id:id(),date:today(),created:stamp(),type,food:$('food').value.trim(),temp:t,checker:$('checker').value.trim(),time:$('checkTime').value,notes,prepId:$('linkedPrepId').value||null,result:result===null?'REVIEW':result?'PASS':'OUT OF LIMIT',closed:false});const linked=$('linkedPrepId').value;if(linked){const task=db.prep.find(p=>p.id===linked);if(task)task.tempRecorded=true;}});
+bind('prepForm',()=>db.prep.push({id:id(),date:$('planDate').value||today(),task:$('prepTask').value.trim(),area:$('prepArea').value,owner:$('prepOwner').value.trim(),due:$('prepDue').value,priority:$('prepPriority').value,cooking:$('prepCooking').checked,tempRecorded:false,done:false}));
+bind('stockForm',()=>db.stock.push({id:id(),name:$('stockName').value.trim(),unit:$('stockUnit').value,qty:$('stockQty').value,par:$('stockPar').value,supplier:$('stockSupplier').value.trim()}));
+bind('recipeForm',()=>db.recipes.push({id:id(),name:$('recipeName').value.trim(),portions:$('recipePortions').value,cost:$('recipeCost').value,method:$('recipeMethod').value.trim(),allergens:$('recipeAllergens').value.trim()}));
+bind('wasteForm',()=>db.waste.push({id:id(),date:today(),time:new Date().toTimeString().slice(0,5),service:$('wasteService').value,item:$('wasteItem').value.trim(),qty:$('wasteQty').value,unit:$('wasteUnit').value,value:$('wasteValue').value,by:$('wasteBy').value.trim(),reason:$('wasteReason').value,action:$('wasteAction').value.trim()}));
+bind('staffForm',()=>db.staff.push({id:id(),name:$('staffName').value.trim(),role:$('staffRole').value}));
+window.finalizePlan=()=>{const d=$('planDate').value||today();if(!db.prep.some(x=>x.date===d)){alert('Add at least one prep task before finalising this list.');return}if(confirm('Finalise the prep list for '+d+'?')){if(!db.finalizedDates.includes(d))db.finalizedDates.push(d);save();render();alert('Prep list finalised.')}};
+window.startCookingCheck=taskId=>{const task=db.prep.find(x=>x.id===taskId);if(!task)return;showTab('haccp');$('checkType').value='Cooking / reheating';$('food').value=task.task;$('linkedPrepId').value=task.id;$('temp').focus();};
+window.exportCSV=bucket=>{const rows=db[bucket]||[];if(!rows.length){alert('There are no records to export yet.');return}const keys=Object.keys(rows[0]);const csv=[keys.join(','),...rows.map(r=>keys.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(','))].join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='PASS-'+bucket+'-'+today()+'.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)};
+$('checkTime').value=new Date().toTimeString().slice(0,5);
+$('planDate').value=today();
+$('planDate').addEventListener('change',render);
+render();
+showTab('prep');
+})();
+</script>
+</body></html>
