@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PASS Smart Stock</title>
+<style>
+:root{--navy:#15364a;--teal:#167d70;--bg:#f2f6f7;--ink:#20313b;--muted:#647680;--line:#dce5e8;--red:#ad4141;--gold:#946117}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px/1.45 Arial,sans-serif;color:var(--ink)}
+header{background:var(--navy);color:white;padding:22px max(18px,calc((100% - 1180px)/2))}header b{font-size:26px;letter-spacing:.09em}header span{display:block;color:#c8d8df;font-size:13px}
+main{max-width:1180px;margin:22px auto;padding:0 16px}nav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px}
+button{border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;background:#e3ebed;color:var(--ink)}button.active,.primary{background:var(--teal);color:#fff}button.danger{background:#f8eaea;color:var(--red)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:13px;padding:17px;margin-bottom:15px;box-shadow:0 2px 8px #12334408}
+h1{font-size:25px;margin:0 0 4px}h2{font-size:18px;margin:0 0 12px}.sub,.muted{color:var(--muted)}.sub{margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}.metric{background:#f7fafb;border:1px solid var(--line);border-radius:11px;padding:13px}.metric small{display:block;color:var(--muted)}.metric b{font-size:24px;display:block;margin-top:5px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.row{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+label{display:block;font-size:13px;font-weight:700;margin:10px 0 5px}input,select,textarea{width:100%;padding:10px;border:1px solid #cbd7dc;border-radius:8px;font:inherit;background:#fff}textarea{min-height:65px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.notice{background:#fff6e6;border:1px solid #eeddbb;border-radius:9px;padding:11px;font-size:13px;color:#6b501c;margin:12px 0}
+.good{color:var(--teal);font-weight:700}.low{color:var(--red);font-weight:700}.tag{display:inline-block;padding:3px 8px;border-radius:20px;background:#e6f4ef;color:#176b5f;font-size:11px;font-weight:700}.tag.warn{background:#fff0df;color:#955d12}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:9px 7px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:11px;text-transform:uppercase;color:var(--muted)}.scroll{overflow:auto}.hidden{display:none}.small{font-size:12px;color:var(--muted)}
+.scanbox{border:2px dashed #a8c4c1;background:#f5fbf9;border-radius:12px;padding:17px;text-align:center}
+#cameraVideo{width:100%;max-height:260px;background:#182b34;border-radius:10px;margin-top:10px}
+@media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.cols,.row{grid-template-columns:1fr}main{margin:12px auto}header{padding:18px}}
+</style></head>
+<body>
+<header><b>PASS</b><span>Smart Stock · Kitchens and self-service · Development build 2</span></header>
+<main>
+<nav>
+<button class="active" data-tab="overview">Overview</button><button data-tab="stock">Stock list</button><button data-tab="receive">Receive delivery</button><button data-tab="count">Stock count</button><button data-tab="scan">Scan</button><button data-tab="sales">Till sales</button><button data-tab="history">Movement history</button>
+</nav>
+<section id="overview">
+<h1>Stock overview</h1><p class="sub">A live picture of stock across kitchens, stores, fridges and self-service points.</p>
+<div class="grid">
+<div class="metric"><small>Products tracked</small><b id="metricProducts">0</b></div><div class="metric"><small>Estimated stock value</small><b id="metricValue">€0.00</b></div><div class="metric"><small>Below reorder level</small><b id="metricLow">0</b></div><div class="metric"><small>Today's till units sold</small><b id="metricSales">0</b></div>
+</div>
+<div class="panel" style="margin-top:15px"><h2>Low-stock alerts</h2><div id="alerts"></div></div>
+<div class="panel"><h2>Recent activity</h2><div id="recent"></div></div>
+<div class="notice">Development prototype. Records save in this browser on this device. Export backups regularly. It is not yet connected to Foodbuy, Source or a live till and must not replace official stock or food-safety records.</div>
+</section>
+<section id="stock" class="hidden">
+<h1>Stock catalogue</h1><p class="sub">The product catalogue is the foundation: each product has a barcode, unit, cost, reorder level and stock location.</p>
+<div class="panel"><div class="row"><div><label>Search</label><input id="stockSearch" placeholder="Product or barcode"></div><div><label>Filter location</label><select id="stockLocationFilter"><option value="">All locations</option><option>Kitchen store</option><option>Kitchen fridge</option><option>Kitchen freezer</option><option>Self-service</option><option>Back-up store</option></select></div></div><div class="scroll" id="stockTable"></div></div>
+<div class="panel"><h2>Add product</h2><div class="row">
+<div><label>Product name</label><input id="pName" placeholder="Coca-Cola 330ml can"></div><div><label>Barcode / supplier code</label><input id="pCode" placeholder="Scan or type code"></div>
+<div><label>Default location</label><select id="pLoc"><option>Kitchen store</option><option>Kitchen fridge</option><option>Kitchen freezer</option><option>Self-service</option><option>Back-up store</option></select></div><div><label>Stock unit</label><select id="pUnit"><option>each</option><option>tray</option><option>case</option><option>kg</option><option>g</option><option>litre</option><option>portion</option></select></div>
+<div><label>Opening quantity</label><input id="pQty" type="number" min="0" step="0.01" value="0"></div><div><label>Reorder level</label><input id="pMin" type="number" min="0" step="0.01" value="0"></div><div><label>Unit cost (€)</label><input id="pCost" type="number" min="0" step="0.001" value="0"></div></div><div class="actions"><button class="primary" onclick="addProduct()">Add product</button></div></div>
+</section>
+<section id="receive" class="hidden">
+<h1>Receive a delivery</h1><p class="sub">Match the delivery to the product catalogue, record what arrived and update stock.</p>
+<div class="panel"><div class="row"><div><label>Product</label><select id="deliveryProduct"></select></div><div><label>Quantity received</label><input id="deliveryQty" type="number" min=".01" step=".01" value="1"></div><div><label>Delivery location</label><select id="deliveryLoc"><option>Kitchen store</option><option>Kitchen fridge</option><option>Kitchen freezer</option><option>Self-service</option><option>Back-up store</option></select></div><div><label>Received by</label><select id="deliveryUser"><option>michael.barry</option><option>supervisor1</option><option>kitchen.user1</option><option>kitchen.user2</option></select></div></div><label>Supplier / docket reference</label><input id="deliveryRef" placeholder="Supplier name and delivery docket number"><div class="actions"><button class="primary" onclick="receiveDelivery()">Confirm delivery and update stock</button></div></div>
+</section>
+<section id="count" class="hidden">
+<h1>Physical stock count</h1><p class="sub">Count what is physically there. PASS compares it with expected stock and records the difference for review.</p>
+<div class="panel"><div class="row"><div><label>Product</label><select id="countProduct"></select></div><div><label>Location</label><select id="countLoc"><option>Kitchen store</option><option>Kitchen fridge</option><option>Kitchen freezer</option><option>Self-service</option><option>Back-up store</option></select></div><div><label>Physical quantity counted</label><input id="countQty" type="number" min="0" step=".01" value="0"></div><div><label>Counted by</label><select id="countUser"><option>michael.barry</option><option>supervisor1</option><option>kitchen.user1</option><option>kitchen.user2</option></select></div></div><div id="countCompare" class="small" style="margin-top:10px">Choose a product to see expected stock.</div><label>Reason / notes for variance</label><input id="countNote" placeholder="Optional explanation for shortage or surplus"><div class="actions"><button class="primary" onclick="submitCount()">Submit count for review</button></div></div>
+<div class="notice">For this build, submitting a count updates the selected product's quantity after recording the variance. In a multi-user production system, larger variances should require supervisor approval and an audit trail.</div>
+</section>
+<section id="scan" class="hidden">
+<h1>Camera and barcode scanning</h1><p class="sub">Scan a product, match it to the catalogue, then confirm the quantity. AI shelf recognition should suggest counts, not silently change them.</p>
+<div class="cols">
+<div class="panel"><h2>Barcode scanner</h2><div class="scanbox"><div style="font-size:32px">▦</div><p><b>Use camera or enter barcode</b></p><div class="actions" style="justify-content:center"><button class="primary" onclick="startCamera()">Start camera</button><button onclick="stopCamera()">Stop camera</button></div><video id="cameraVideo" playsinline class="hidden"></video><label>Barcode / product code</label><input id="scanCode" placeholder="Barcode number"><div class="actions"><button onclick="findScanned()">Find product</button></div><div id="scanResult" class="small"></div></div></div>
+<div class="panel"><h2>AI room / shelf count</h2><div class="scanbox"><div style="font-size:32px">📷</div><p><b>Upload a shelf or storeroom photo</b></p><input id="shelfPhoto" type="file" accept="image/*" capture="environment"><p class="small">Image recognition is a planned integration. It will need to identify likely products and quantities for a person to verify.</p><button onclick="alert('AI image recognition is not connected in this prototype yet. The next integration needs a vision service and a human confirmation screen.')">Review AI count (planned)</button></div></div>
+</div>
+<div class="notice">Safari camera access requires permission and a secure HTTPS site. Barcode scanning depends on browser support; manual barcode entry remains available as a fallback. A camera cannot reliably see hidden stock or identify every pack size.</div>
+</section>
+<section id="sales" class="hidden">
+<h1>Till sales</h1><p class="sub">A demo event reduces stock. The live version will receive transaction data from your till provider and map each till product to the correct stock item or recipe.</p>
+<div class="panel"><h2>Simulate a till sale</h2><div class="row"><div><label>Product sold</label><select id="saleProduct"></select></div><div><label>Quantity sold</label><input id="saleQty" type="number" min="1" step="1" value="1"></div><div><label>Sales point</label><select id="saleLocation"><option>Self-service</option><option>Kitchen till</option><option>Coffee point</option></select></div><div><label>Reference</label><input id="saleRef" placeholder="Till transaction / batch"></div></div><div class="actions"><button class="primary" onclick="recordSale()">Record demo sale</button></div></div>
+<div class="panel"><h2>Sales reconciliation</h2><div id="salesTable"></div></div>
+</section>
+<section id="history" class="hidden"><h1>Stock movement history</h1><p class="sub">An audit trail of deliveries, usage, waste, sales, counts and transfers.</p><div class="panel"><div class="actions"><button onclick="exportCSV()">Export movements CSV</button><button onclick="exportStock()">Export stock CSV</button></div><div class="scroll" id="historyTable"></div></div></section>
+</main>
+<script>
+const KEY='passSmartStockV2';
+const initial={items:[
+{id:1,name:'Coca-Cola 330ml can',code:'5449000000996',loc:'Self-service',unit:'each',qty:48,min:24,cost:.62},
+{id:2,name:'Still water 500ml',code:'WATER500',loc:'Self-service',unit:'each',qty:36,min:24,cost:.28},
+{id:3,name:'Chicken fillet',code:'CHICKEN',loc:'Kitchen fridge',unit:'kg',qty:12,min:8,cost:6.4},
+{id:4,name:'Basmati rice',code:'RICE5KG',loc:'Kitchen store',unit:'kg',qty:18,min:10,cost:2.1},
+{id:5,name:'Cooking cream',code:'CREAM',loc:'Kitchen fridge',unit:'litre',qty:4,min:6,cost:2.25},
+{id:6,name:'Tinned tomatoes',code:'TOM400',loc:'Kitchen store',unit:'each',qty:30,min:12,cost:.72}
+],moves:[],sales:[],nextId:7};
+let state;try{state=JSON.parse(localStorage.getItem(KEY))||structuredClone(initial)}catch(e){state=JSON.parse(JSON.stringify(initial))}
+const money=n=>'€'+Number(n||0).toFixed(2), stamp=()=>new Date().toLocaleString();
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function table(headers,rows){if(!rows.length)return '<p class="small">No records yet.</p>';return '<div class="scroll"><table><thead><tr>'+headers.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map(v=>'<td>'+v+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
+function log(item,type,qty,user,note,loc){state.moves.push({time:stamp(),name:item.name,type,qty,unit:item.unit,user,note:note||'',loc:loc||item.loc});}
+function render(){
+const items=state.items;document.getElementById('metricProducts').textContent=items.length;
+document.getElementById('metricValue').textContent=money(items.reduce((s,x)=>s+x.qty*x.cost,0));
+document.getElementById('metricLow').textContent=items.filter(x=>x.qty<x.min).length;
+const today=new Date().toDateString();document.getElementById('metricSales').textContent=state.sales.filter(x=>new Date(x.ts).toDateString()===today).reduce((s,x)=>s+x.qty,0);
+const low=items.filter(x=>x.qty<x.min);document.getElementById('alerts').innerHTML=low.length?low.map(x=>`<p><span class="low">REORDER</span> · ${esc(x.name)} — ${x.qty} ${esc(x.unit)} at ${esc(x.loc)} (minimum ${x.min})</p>`).join(''):'<p class="good">No products below reorder level.</p>';
+document.getElementById('recent').innerHTML=state.moves.slice(-6).reverse().map(m=>`<p>${esc(m.time)} · ${esc(m.type)} · ${esc(m.name)} · ${m.qty} ${esc(m.unit)} · ${esc(m.user)}</p>`).join('')||'<p class="small">No movements recorded yet.</p>';
+const q=(document.getElementById('stockSearch')?.value||'').toLowerCase(),loc=document.getElementById('stockLocationFilter')?.value||'';
+const visible=items.filter(x=>(!q||(x.name+' '+x.code).toLowerCase().includes(q))&&(!loc||x.loc===loc));
+document.getElementById('stockTable').innerHTML=table(['Product','Barcode','Location','On hand','Unit cost','Value','Status'],visible.map(x=>[esc(x.name),esc(x.code||'—'),esc(x.loc),x.qty+' '+esc(x.unit),money(x.cost),money(x.qty*x.cost),x.qty<x.min?'<span class="tag warn">Reorder</span>':'<span class="tag">OK</span>']));
+const opts=items.map(x=>`<option value="${x.id}">${esc(x.name)} — ${esc(x.loc)}</option>`).join('');
+['deliveryProduct','countProduct','saleProduct'].forEach(id=>document.getElementById(id).innerHTML=opts);
+document.getElementById('historyTable').innerHTML=table(['Date / time','Product','Movement','Quantity','Location','Username','Reference / notes'],state.moves.slice().reverse().map(m=>[esc(m.time),esc(m.name),esc(m.type),m.qty+' '+esc(m.unit),esc(m.loc),esc(m.user),esc(m.note||'—')]));
+document.getElementById('salesTable').innerHTML=table(['Date / time','Product','Qty sold','Sales point','Reference'],state.sales.slice().reverse().map(s=>[esc(s.time),esc(s.name),s.qty+' '+esc(s.unit),esc(s.point),esc(s.ref||'—')]));
+updateCountCompare();
+}
+function addProduct(){let name=pName.value.trim();if(!name)return alert('Enter a product name.');if(pCode.value.trim()&&state.items.some(x=>x.code.toLowerCase()===pCode.value.trim().toLowerCase()))return alert('That barcode is already in the catalogue.');let x={id:state.nextId++,name,code:pCode.value.trim(),loc:pLoc.value,unit:pUnit.value,qty:+pQty.value,min:+pMin.value,cost:+pCost.value};state.items.push(x);log(x,'Opening balance',x.qty,'michael.barry','Product created');save();render();['pName','pCode'].forEach(id=>document.getElementById(id).value='');alert('Product added and saved in this browser.')}
+function receiveDelivery(){let x=state.items.find(i=>i.id==deliveryProduct.value),qty=+deliveryQty.value;if(!x||qty<=0)return alert('Choose a product and enter a valid quantity.');x.qty+=qty;x.loc=deliveryLoc.value;log(x,'Delivery received',qty,deliveryUser.value,deliveryRef.value,deliveryLoc.value);save();render();alert('Delivery recorded. Stock has been updated.')}
+function updateCountCompare(){let x=state.items.find(i=>i.id==countProduct.value);let el=document.getElementById('countCompare');if(!x){el.textContent='Choose a product to see expected stock.';return}let diff=Number(countQty.value||0)-x.qty;el.innerHTML=`Expected stock: <b>${x.qty} ${esc(x.unit)}</b> · Difference: <b class="${diff===0?'good':'low'}">${diff>0?'+':''}${diff.toFixed(2)} ${esc(x.unit)}</b>`}
+function submitCount(){let x=state.items.find(i=>i.id==countProduct.value),qty=+countQty.value;if(!x||qty<0)return alert('Choose a product and enter a valid count.');let old=x.qty,diff=qty-old;x.qty=qty;log(x,'Physical count adjustment',diff,'michael.barry',`Counted ${qty}; previous system quantity ${old}. ${countNote.value}`,countLoc.value);save();render();alert(`Count saved. Variance: ${diff>0?'+':''}${diff.toFixed(2)} ${x.unit}.`)}
+function recordSale(){let x=state.items.find(i=>i.id==saleProduct.value),qty=+saleQty.value;if(!x||qty<1)return alert('Choose a product and valid quantity.');if(qty>x.qty)return alert('Sale exceeds available stock. Check the count first.');x.qty-=qty;let s={ts:Date.now(),time:stamp(),name:x.name,qty,unit:x.unit,point:saleLocation.value,ref:saleRef.value};state.sales.push(s);log(x,'Till sale',qty,'Till integration (demo)',saleRef.value,saleLocation.value);save();render();alert('Demo sale recorded and stock deducted.')}
+function findScanned(){let code=scanCode.value.trim(),x=state.items.find(i=>i.code.toLowerCase()===code.toLowerCase());scanResult.innerHTML=x?`<span class="good">Product found:</span> ${esc(x.name)} · ${x.qty} ${esc(x.unit)} · ${esc(x.loc)}`:'No match. Add this barcode to the product catalogue first.'}
+let stream=null,detector=null,scanLoop=null;
+async function startCamera(){if(!navigator.mediaDevices?.getUserMedia)return alert('Camera access is unavailable in this browser or page context.');try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}});cameraVideo.srcObject=stream;cameraVideo.classList.remove('hidden');await cameraVideo.play();if('BarcodeDetector'in window){detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','qr_code']});scanLoop=setInterval(async()=>{try{let codes=await detector.detect(cameraVideo);if(codes.length){scanCode.value=codes[0].rawValue;findScanned();stopCamera()}}catch(e){}},700)}else alert('Camera is on. Automatic barcode detection is not supported in this browser; enter the barcode manually.')}catch(e){alert('Could not start camera. Check Safari camera permission and make sure the site is opened over HTTPS.')}} 
+function stopCamera(){if(scanLoop)clearInterval(scanLoop);scanLoop=null;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;cameraVideo.classList.add('hidden')}
+function csv(rows){return rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n')}
+function download(name,content){let a=document.createElement('a'),u=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8;'}));a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
+function exportCSV(){download('PASS-stock-movements.csv',csv([['Date/time','Product','Movement','Quantity','Unit','Location','Username','Notes'],...state.moves.map(m=>[m.time,m.name,m.type,m.qty,m.unit,m.loc,m.user,m.note])]));}
+function exportStock(){download('PASS-stock-on-hand.csv',csv([['Product','Barcode','Location','Quantity','Unit','Unit cost','Reorder level','Stock value'],...state.items.map(x=>[x.name,x.code,x.loc,x.qty,x.unit,x.cost,x.min,x.qty*x.cost])]));}
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));document.getElementById(b.dataset.tab).classList.remove('hidden')}));
+stockSearch.addEventListener('input',render);stockLocationFilter.addEventListener('change',render);countProduct.addEventListener('change',updateCountCompare);countQty.addEventListener('input',updateCountCompare);
+render();
+</script></body></html>
